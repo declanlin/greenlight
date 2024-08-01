@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 )
 
 // Declare a string to specify the application version number. TO BE REPLACED IN BUILD FILE.
@@ -33,4 +34,13 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	// Parse the flags from the command line.
 	flag.Parse()
+
+	// Initialize a new logger to write messages to the standard output stream, prefixed with the current date and time.
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+
+	// Declare an instance of the application struct.
+	app := &application{
+		config: cfg,
+		logger: logger,
+	}
 }
