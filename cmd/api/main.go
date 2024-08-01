@@ -2,8 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"time"
 )
 
 // Declare a string to specify the application version number. TO BE REPLACED IN BUILD FILE.
@@ -43,4 +46,24 @@ func main() {
 		config: cfg,
 		logger: logger,
 	}
+
+	// Declare an new servemux and add a /v1/healthcheck route which dispatches requests
+	// to the healthcheckHandler.
+	mux := http.NewServeMux()
+	mux.HandleFunc("/v1/healthcheck", app.healthcheckHandler)
+
+	// Declare a new http.Server with some sensible timeout settings.
+	// The server will listen on the specified port and uses the servemux as the handler for request/response handling.
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%d", cfg.port),
+		Handler:      mux,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+
+	// Start the HTTP server.
+	logger.Printf("Starting %s server on %s", cfg.env, srv.Addr)
+	err := srv.ListenAndServe()
+	logger.Fatal(err)
 }
